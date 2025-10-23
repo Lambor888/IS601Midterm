@@ -1,5 +1,6 @@
 #程序主循环，在循环开始之初初始化calculator类
 from app.opeartions import OperationFactory
+from app.calculator import Calculator
 import os
 import re
 
@@ -93,16 +94,23 @@ def split_input(input_str: str) -> list[str]:
 
 def main_loop():
 
-    while True:
-        try:
-            inputstr = input()
-            arr = split_input(inputstr)
-            print (arr)
-            if(arr[0] == 'exit'):
-                break
-            if(arr[0] == 'clear'):
-                clear_console()
+    
+    try:
+        calc = Calculator()
+        
+        while True:
+            try:
+                inputstr = input()
+                arr = split_input(inputstr)
+                print (arr)
+                if(arr[0] == 'exit'):
+                    break
+                if(arr[0] == 'clear'):
+                    clear_console()
+                    continue
+            except ValueError:
+                print("imput error")
                 continue
-        except ValueError:
-            print("imput error")
-            continue
+    except Exception as e:
+
+        pass
