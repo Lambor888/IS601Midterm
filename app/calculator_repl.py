@@ -112,5 +112,5 @@ def main_loop():
                 print("imput error")
                 continue
     except Exception as e:
-
+        print("error",e)
         pass

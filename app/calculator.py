@@ -25,11 +25,13 @@ class Calculator:
             config (Optional[CalculatorConfig], optional): Configuration settings for the calculator.
                 If not provided, default settings are loaded based on environment variables.
         """
+        print("calss init")
         if config is None:
             # Determine the project root directory if no configuration is provided
             current_file = Path(__file__)
             project_root = current_file.parent.parent
             config = CalculatorConfig(base_dir=project_root)
+            print("create config")
 
         # Assign the configuration and validate its parameters
         self.config = config
@@ -57,6 +59,50 @@ class Calculator:
         
 
 
+    def _setup_logging(self) -> None:
+        """
+        Configure the logging system.
+
+        Sets up logging to a file with a specified format and log level.
+        """
+        try:
+            # Ensure the log directory exists
+            os.makedirs(self.config.log_dir, exist_ok=True)
+            log_file = self.config.log_file.resolve()
+
+            # Configure the basic logging settings
+            logging.basicConfig(
+                filename=str(log_file),
+                level=logging.INFO,
+                format='%(asctime)s - %(levelname)s - %(message)s',
+                force=True  # Overwrite any existing logging configuration
+            )
+            logging.info(f"Logging initialized at: {log_file}")
+        except Exception as e:
+            # Print an error message and re-raise the exception if logging setup fails
+            print(f"Error setting up logging: {e}")
+            raise
+
+    def add_observer(self, observer: HistoryObserver) -> None:
+        """
+        Register a new observer.
+
+        Adds an observer to the list, allowing it to receive updates when new
+        calculations are performed.
+
+        Args:
+            observer (HistoryObserver): The observer to be added.
+        """
+        self.observers.append(observer)
+        logging.info(f"Added observer: {observer.__class__.__name__}")
+
+    def _setup_directories(self) -> None:
+        """
+        Create required directories.
+
+        Ensures that all necessary directories for history management exist.
+        """
+        self.config.history_dir.mkdir(parents=True, exist_ok=True)
 
 
     def add_observer(self, observer: HistoryObserver) -> None:

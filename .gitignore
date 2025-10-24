@@ -19,3 +19,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Calculator-specific files
+logs/
+history/
+*.log
+*.csv
+calculator_history.*
