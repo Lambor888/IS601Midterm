@@ -1,17 +1,60 @@
 #记录操作历史，每一个元素都是calculation实例
 from app.history import HistoryObserver
 import logging
+import os
 from app.calculation import Calculation
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from decimal import Decimal
+from app.calculator_config import CalculatorConfig
+from app.calculator_memento import CalculatorMemento
+from app.opeartions import Operation
+
+
 
 Number = Union[int, float, Decimal]
 CalculationResult = Union[Number, str]
 
 class Calculator:
 
-    def __init__(self):
-        pass
+    def __init__(self, config: Optional[CalculatorConfig] = None):
+        """
+        Initialize calculator with configuration.
+
+        Args:
+            config (Optional[CalculatorConfig], optional): Configuration settings for the calculator.
+                If not provided, default settings are loaded based on environment variables.
+        """
+        if config is None:
+            # Determine the project root directory if no configuration is provided
+            current_file = Path(__file__)
+            project_root = current_file.parent.parent
+            config = CalculatorConfig(base_dir=project_root)
+
+        # Assign the configuration and validate its parameters
+        self.config = config
+        self.config.validate()
+
+        # Ensure that the log directory exists
+        os.makedirs(self.config.log_dir, exist_ok=True)
+
+        # Set up the logging system
+        self._setup_logging()
+
+        # Initialize calculation history and operation strategy
+        self.history: List[Calculation] = []
+        self.operation_strategy: Optional[Operation] = None
+
+        # Initialize observer list for the Observer pattern
+        self.observers: List[HistoryObserver] = []
+
+        # Initialize stacks for undo and redo functionality using the Memento pattern
+        self.undo_stack: List[CalculatorMemento] = []
+        self.redo_stack: List[CalculatorMemento] = []
+
+        # Create required directories for history management
+        self._setup_directories()
+        
 
 
 
