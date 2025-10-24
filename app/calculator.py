@@ -11,7 +11,7 @@ from app.calculator_memento import CalculatorMemento
 from app.opeartions import Operation
 import pandas as pd
 from app.exceptions import OperationError, ValidationError
-
+from app.input_validators import InputValidator
 
 
 Number = Union[int, float, Decimal]
@@ -90,6 +90,61 @@ class Calculator:
             print(f"Error setting up logging: {e}")
             raise
 
+
+#------------------CORE CALCULATE
+
+    def perform_op(self, a : Number, b : Number) -> CalculationResult:
+        
+        if not self.operation_strategy:
+            raise OperationError("No operation set")
+        
+        try:
+            # Validate and convert inputs to Decimal
+            validated_a = InputValidator.validate_number(a, self.config)
+            validated_b = InputValidator.validate_number(b, self.config)
+            result = self.operation_strategy.execute(validated_a, validated_b)
+
+            # Create a new Calculation instance with the operation details
+            calculation = Calculation(
+                operation=str(self.operation_strategy),
+                operand1=validated_a,
+                operand2=validated_b,
+                result=result
+            )
+
+            # Save the current state to the undo stack before making changes
+            self.undo_stack.append(CalculatorMemento(self.history.copy()))
+
+            # Clear the redo stack since new operation invalidates the redo history
+            self.redo_stack.clear()
+
+            # Append the new calculation to the history
+            self.history.append(calculation)
+
+            # Ensure the history does not exceed the maximum size
+            if len(self.history) > self.config.max_history_size:
+                self.history.pop(0)
+
+            # Notify all observers about the new calculation
+            self.notify_observers(calculation)
+
+            return result
+        
+        except ValidationError as e:
+            # Log and re-raise validation errors
+            logging.error(f"Validation error: {str(e)}")
+            raise
+        except Exception as e:
+            # Log and raise operation errors for any other exceptions
+            logging.error(f"Operation failed: {str(e)}")
+            raise OperationError(f"Operation failed: {str(e)}")
+
+    def set_operation(self, operation : Operation):
+
+        self.operation_strategy = operation
+        logging.info(f"Set operation: {operation}")
+
+
 #----------------------observer
 
     def add_observer(self, observer: HistoryObserver) -> None:
@@ -165,7 +220,7 @@ class Calculator:
                 logging.info(f"History saved successfully to {self.config.history_file}")
             else:
                 # If history is empty, create an empty CSV with headers
-                pd.DataFrame(columns=['operation', 'operand1', 'operand2', 'result', 'timestamp']
+                pd.DataFrame(columns=['operand1', 'operation','operand2', 'result', 'timestamp']
                            ).to_csv(self.config.history_file, index=False)
                 logging.info("Empty history saved")
 

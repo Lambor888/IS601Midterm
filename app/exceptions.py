@@ -32,6 +32,12 @@ class OperationError(CalculatorError):
     """
     pass
 
+class UnknownOperationError(CalculatorError):
+    """
+    Raised when a unknown operation tries to create
+    """
+    pass
+
 
 class ConfigurationError(CalculatorError):
     """

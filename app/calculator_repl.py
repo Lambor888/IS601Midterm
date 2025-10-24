@@ -2,8 +2,11 @@
 from app.opeartions import OperationFactory
 from app.calculator import Calculator
 from app.history import AutoSaveObserver, LoggingObserver
+from app.exceptions import UnknownOperationError
 import os
 import re
+
+COMMANDS = ["history", "help", "undo","redo","save","load","exit","clear"]
 
 def clear_console():
     # 检测操作系统类型
@@ -40,8 +43,8 @@ def split_input(input_str: str) -> list[str]:
     processed_input = input_str.strip().lower()
 
     # --- 1. 匹配命令 ---
-    commands = ["history", "help", "undo","redo","save","load","exit","clear"]
-    if processed_input in commands:
+
+    if processed_input in COMMANDS:
         return [processed_input]
 
     # 预处理：移除末尾的等号（如果存在）
@@ -111,6 +114,22 @@ def main_loop():
                 if(arr[0] == 'clear'):
                     clear_console()
                     continue
+                print(len(arr))
+#---------------create operation
+                if len(arr) == 3:
+                    try:
+                        operation = OperationFactory.create_operation(arr[1])
+                        calc.set_operation(operation)
+                        result = calc.perform_op(arr[0],arr[2])
+                        print(arr[0],arr[1],arr[2],'=',result,'\n')
+                    except UnknownOperationError as e:
+                        print(f"unknown operator: {arr[1]}")
+                    except Exception as e:
+                        print(e)
+                        pass
+
+                
+#-----------------
             except ValueError:
                 print("imput error")
                 continue

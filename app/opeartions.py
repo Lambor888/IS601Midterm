@@ -4,7 +4,7 @@ from typing import Dict
 class Operation(ABC):
 
     @abstractmethod
-    def exectue(self, a: Decimal, b : Decimal) -> str:
+    def execute(self, a: Decimal, b : Decimal) -> str:
 
         pass
 
@@ -18,14 +18,14 @@ class Operation(ABC):
 
 class Addition(Operation):
     
-    def exectue(self, a, b):
+    def execute(self, a, b):
         self.validate_operands(a,b)
         return str(a+b)
     
 
 class Subtraction(Operation):
 
-    def exectue(self, a, b):
+    def execute(self, a, b):
         self.validate_operands(a,b)
         return str(a-b)
     
