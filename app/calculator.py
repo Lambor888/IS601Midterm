@@ -9,6 +9,8 @@ from decimal import Decimal
 from app.calculator_config import CalculatorConfig
 from app.calculator_memento import CalculatorMemento
 from app.opeartions import Operation
+import pandas as pd
+from app.exceptions import OperationError, ValidationError
 
 
 
@@ -25,13 +27,11 @@ class Calculator:
             config (Optional[CalculatorConfig], optional): Configuration settings for the calculator.
                 If not provided, default settings are loaded based on environment variables.
         """
-        print("calss init")
         if config is None:
             # Determine the project root directory if no configuration is provided
             current_file = Path(__file__)
             project_root = current_file.parent.parent
             config = CalculatorConfig(base_dir=project_root)
-            print("create config")
 
         # Assign the configuration and validate its parameters
         self.config = config
@@ -58,6 +58,13 @@ class Calculator:
         self._setup_directories()
         
 
+    def _setup_directories(self) -> None:
+        """
+        Create required directories.
+
+        Ensures that all necessary directories for history management exist.
+        """
+        self.config.history_dir.mkdir(parents=True, exist_ok=True)
 
     def _setup_logging(self) -> None:
         """
@@ -83,27 +90,7 @@ class Calculator:
             print(f"Error setting up logging: {e}")
             raise
 
-    def add_observer(self, observer: HistoryObserver) -> None:
-        """
-        Register a new observer.
-
-        Adds an observer to the list, allowing it to receive updates when new
-        calculations are performed.
-
-        Args:
-            observer (HistoryObserver): The observer to be added.
-        """
-        self.observers.append(observer)
-        logging.info(f"Added observer: {observer.__class__.__name__}")
-
-    def _setup_directories(self) -> None:
-        """
-        Create required directories.
-
-        Ensures that all necessary directories for history management exist.
-        """
-        self.config.history_dir.mkdir(parents=True, exist_ok=True)
-
+#----------------------observer
 
     def add_observer(self, observer: HistoryObserver) -> None:
         """
@@ -142,3 +129,47 @@ class Calculator:
         """
         for observer in self.observers:
             observer.update(calculation)
+
+#---------------------------history
+
+    def save_history(self) -> None:
+        """
+        Save calculation history to a CSV file using pandas.
+
+        Serializes the history of calculations and writes them to a CSV file for
+        persistent storage. Utilizes pandas DataFrames for efficient data handling.
+
+        Raises:
+            OperationError: If saving the history fails.
+        """
+        try:
+            # Ensure the history directory exists
+            self.config.history_dir.mkdir(parents=True, exist_ok=True)
+
+            history_data = []
+            for calc in self.history:
+                # Serialize each Calculation instance to a dictionary
+                history_data.append({
+                    'operation': str(calc.operation),
+                    'operand1': str(calc.operand1),
+                    'operand2': str(calc.operand2),
+                    'result': str(calc.result),
+                    'timestamp': calc.timestamp.isoformat()
+                })
+
+            if history_data:
+                # Create a pandas DataFrame from the history data
+                df = pd.DataFrame(history_data)
+                # Write the DataFrame to a CSV file without the index
+                df.to_csv(self.config.history_file, index=False)
+                logging.info(f"History saved successfully to {self.config.history_file}")
+            else:
+                # If history is empty, create an empty CSV with headers
+                pd.DataFrame(columns=['operation', 'operand1', 'operand2', 'result', 'timestamp']
+                           ).to_csv(self.config.history_file, index=False)
+                logging.info("Empty history saved")
+
+        except Exception as e:
+            # Log and raise an OperationError if saving fails
+            logging.error(f"Failed to save history: {e}")
+            raise OperationError(f"Failed to save history: {e}")

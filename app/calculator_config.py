@@ -66,6 +66,8 @@ class CalculatorConfig:
             max_input_value (Optional[Number], optional): Maximum allowed input value. Defaults to None.
             default_encoding (Optional[str], optional): Default encoding for file operations. Defaults to None.
         """
+
+        print("config init")
         # Set base directory to project root by default
         project_root = get_project_root()
         self.base_dir = base_dir or Path(

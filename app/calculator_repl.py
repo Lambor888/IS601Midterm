@@ -1,6 +1,7 @@
 #程序主循环，在循环开始之初初始化calculator类
 from app.opeartions import OperationFactory
 from app.calculator import Calculator
+from app.history import AutoSaveObserver, LoggingObserver
 import os
 import re
 
@@ -97,7 +98,9 @@ def main_loop():
     
     try:
         calc = Calculator()
-        
+        calc.add_observer(LoggingObserver())
+        calc.add_observer(AutoSaveObserver(calc))
+        print("init complete")
         while True:
             try:
                 inputstr = input()
