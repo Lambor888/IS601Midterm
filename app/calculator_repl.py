@@ -26,7 +26,7 @@ def split_input(input_str: str) -> list[str]:
     1. 二元运算: <数字> <操作符> <数字> [=]
     2. 命令: history, help, undo,save
     
-    操作符: +, -, *, /, %, mod, root, pow, abs, per (全部作为二元操作符处理)
+    操作符: +, -, *, /, %, div, root, pow, abs, per (全部作为二元操作符处理)
     数字: 整数、小数、负数。
     
     Args:
@@ -60,7 +60,7 @@ def split_input(input_str: str) -> list[str]:
     # 定义所有二元操作符：
     # + - * / % mod root pow abs per
     # 注意：+ - * / % 必须转义或在字符集中
-    OPERATOR_PATTERN = r"(\+|-|\*|\/|%|mod|root|pow|abs|per)"
+    OPERATOR_PATTERN = r"(\+|-|\*|\/|%|div|root|pow|abs|per)"
 
     # --- 2. 匹配二元运算 (数字 操作符 数字) ---
     # 模式: <数字> <操作符> <数字>
@@ -123,7 +123,7 @@ def main_loop():
                         result = calc.perform_op(arr[0],arr[2])
                         print(arr[0],arr[1],arr[2],'=',result,'\n')
                     except UnknownOperationError as e:
-                        print(f"unknown operator: {arr[1]}")
+                        print(e)
                     except Exception as e:
                         print(e)
                         pass
