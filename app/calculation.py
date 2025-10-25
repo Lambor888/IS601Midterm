@@ -128,24 +128,3 @@ class Calculation:
             self.operand2 == other.operand2 and
             self.result == other.result
         )
-
-    def format_result(self, precision: int = 10) -> str:
-        """
-        Format the calculation result with specified precision.
-
-        This method formats the result to a fixed number of decimal places,
-        removing any trailing zeros for a cleaner presentation.
-
-        Args:
-            precision (int, optional): Number of decimal places to show. Defaults to 10.
-
-        Returns:
-            str: Formatted string representation of the result.
-        """
-        try:
-            # Remove trailing zeros and format to specified precision
-            return str(self.result.normalize().quantize(
-                Decimal('0.' + '0' * precision)
-            ).normalize())
-        except InvalidOperation:  # pragma: no cover
-            return str(self.result)
