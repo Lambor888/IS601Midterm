@@ -3,6 +3,7 @@ from app.opeartions import OperationFactory
 from app.calculator import Calculator
 from app.history import AutoSaveObserver, LoggingObserver
 from app.exceptions import UnknownOperationError
+import logging
 import os
 import re
 
@@ -111,6 +112,7 @@ def main_loop():
                 clear_console()
                 print('\n')
                 if(arr[0] == 'help'):
+                    logging.info('Show help')
                     continue
                 if(arr[0] == 'exit'):
                     # Attempt to save history before exiting
@@ -125,11 +127,13 @@ def main_loop():
                     # Clear calculation history
                     calc.clear_history()
                     print("History cleared")
+                    logging.info('Clear History')
                     continue
                 if(arr[0] == 'undo'):
                     # Undo the last calculation
                     if calc.undo():
                         print("Operation undone")
+                        logging.info('Undo Operation')
                     else:
                         print("Nothing to undo")
                     continue
@@ -137,6 +141,7 @@ def main_loop():
                     # Redo the last undone calculation
                     if calc.redo():
                         print("Operation redone")
+                        logging.info('Redo operation')
                     else:
                         print("Nothing to redo")
                     continue
@@ -145,7 +150,9 @@ def main_loop():
                     try:
                         calc.load_history()
                         print("History loaded successfully")
+                        logging.info('Load Histtory')
                     except Exception as e:
+                        logging.error(f"Error loading history: {e}")
                         print(f"Error loading history: {e}")
                     continue
                 if(arr[0] == 'save'):
@@ -154,6 +161,7 @@ def main_loop():
                         calc.save_history()
                         print("History saved successfully")
                     except Exception as e:
+                        logging.error(f"Error saving history: {e}")
                         print(f"Error saving history: {e}")
                     continue
                 if(arr[0] == 'history'):
@@ -162,6 +170,7 @@ def main_loop():
                         print("No calculations in history")
                     else:
                         print("\nCalculation History:")
+                        logging.info(f'Show History {len(history)} lines in total')
                         for i, entry in enumerate(history, 1):
                             print(f"{entry}")
                     continue
@@ -174,15 +183,19 @@ def main_loop():
                         print(arr[0],arr[1],arr[2],'=',result,'\n')
                     except UnknownOperationError as e:
                         print(e)
+                        logging.error(f'UnknownOperationError {e}')
                     except Exception as e:
                         print(e)
+                        logging.error(f'Error {e}')
                         pass
 
                 
 #-----------------
             except ValueError:
                 print("imput error")
+                logging.info('User input error')
                 continue
     except Exception as e:
         print("error",e)
+        logging.error(f'Error {e}')
         pass

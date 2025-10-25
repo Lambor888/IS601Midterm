@@ -138,3 +138,9 @@ class OperationFactory:
         if not operation_class:
             raise UnknownOperationError(f"Unknown operation: {operation_class}")
         return operation_class()
+    
+    @classmethod
+    def register_operation(cls, name: str, operation_class: type) -> None:
+        if not issubclass(operation_class, Operation):
+            raise TypeError("Operation class must inherit from Operation")
+        cls._operations[name.lower()] = operation_class
