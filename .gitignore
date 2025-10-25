@@ -26,3 +26,5 @@ history/
 *.log
 *.csv
 calculator_history.*
+
+<MagicMock*

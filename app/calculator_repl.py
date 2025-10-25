@@ -11,6 +11,24 @@ from colorama import Fore, Back, Style
 
 COMMANDS = ["history", "help", "undo","redo","save","load","exit","clear"]
 
+helpDes ="""
+How to use:
+op1 operator op2
+accept operator : + - * / % pow root div abs pre
+% : modulo;  pow : exponentiation; root : root calculation
+div : integer division; abs : absolute difference
+pre: percentage calculation
+
+Available command:
+history : Display the calculation history.
+clear : clear the current calculation history.
+undo : undo the last performed calculationn.
+redo : redo the last undone calculation.
+save : save the history to local file.
+load : load calculation history from local file.
+exit : exit the application
+"""
+
 def clear_console():
     # 检测操作系统类型
     if os.name == 'nt':
@@ -99,14 +117,14 @@ def split_input(input_str: str) -> list[str]:
     raise ValueError(f"输入格式不合法: '{input_str}'。合法格式为 '数字 操作符 数字 [=]' 或 '命令'。")
 
 
-def main_loop():
+def calculator_repl():
 
     
     try:
         calc = Calculator()
         calc.add_observer(LoggingObserver())
         calc.add_observer(AutoSaveObserver(calc))
-        print(Fore.GREEN + "Welcome to my calculator, input help for help" + Style.RESET_ALL)
+        print(Fore.GREEN + "Welcome to my calculator, input help for HELP" + Style.RESET_ALL)
         while True:
             try:
                 inputstr = input()
@@ -114,6 +132,7 @@ def main_loop():
                 clear_console()
                 print('\n')
                 if(arr[0] == 'help'):
+                    print(Fore.YELLOW+ helpDes+Style.RESET_ALL)
                     logging.info('Show help')
                     continue
                 if(arr[0] == 'exit'):
@@ -184,10 +203,6 @@ def main_loop():
                         result = calc.perform_op(arr[0],arr[2])
                         print(Back.YELLOW + arr[0],arr[1],arr[2],'=',result,'\n' +Style.RESET_ALL)
                     except (UnknownOperationError, ValidationError) as e:
-                        print(Fore.RED+f"{e}"+Style.RESET_ALL)
-                        logging.error(f'UnknownOperationError {e}')
-                        continue
-                    except Exception as e:
                         print(Fore.RED+f"{e}"+Style.RESET_ALL)
                         logging.error(f'Error {e}')
                         continue
