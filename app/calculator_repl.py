@@ -2,10 +2,12 @@
 from app.opeartions import OperationFactory
 from app.calculator import Calculator
 from app.history import AutoSaveObserver, LoggingObserver
-from app.exceptions import UnknownOperationError
+from app.exceptions import UnknownOperationError, ValidationError
 import logging
 import os
 import re
+import colorama
+from colorama import Fore, Back, Style
 
 COMMANDS = ["history", "help", "undo","redo","save","load","exit","clear"]
 
@@ -104,7 +106,7 @@ def main_loop():
         calc = Calculator()
         calc.add_observer(LoggingObserver())
         calc.add_observer(AutoSaveObserver(calc))
-        print("Welcome to my calculator, input help for help")
+        print(Fore.GREEN + "Welcome to my calculator, input help for help" + Style.RESET_ALL)
         while True:
             try:
                 inputstr = input()
@@ -118,61 +120,61 @@ def main_loop():
                     # Attempt to save history before exiting
                     try:
                         calc.save_history()
-                        print("History saved successfully.")
+                        print(Fore.GREEN+"History saved successfully."+Style.RESET_ALL)
                     except Exception as e:
                         print(f"Warning: Could not save history: {e}")
-                    print("Goodbye!")
+                    print(Back.GREEN+"Goodbye!"+Style.RESET_ALL)
                     break
                 if(arr[0] == 'clear'):
                     # Clear calculation history
                     calc.clear_history()
-                    print("History cleared")
+                    print(Fore.GREEN+"History cleared"+Style.RESET_ALL)
                     logging.info('Clear History')
                     continue
                 if(arr[0] == 'undo'):
                     # Undo the last calculation
                     if calc.undo():
-                        print("Operation undone")
+                        print(Fore.GREEN+"Operation undone"+Style.RESET_ALL)
                         logging.info('Undo Operation')
                     else:
-                        print("Nothing to undo")
+                        print(Fore.RED+"Nothing to undo"+Style.RESET_ALL)
                     continue
                 if(arr[0] == 'redo'):
                     # Redo the last undone calculation
                     if calc.redo():
-                        print("Operation redone")
+                        print(Fore.GREEN+"Operation redone"+Style.RESET_ALL)
                         logging.info('Redo operation')
                     else:
-                        print("Nothing to redo")
+                        print(Fore.RED+"Nothing to redo"+Style.RESET_ALL)
                     continue
                 if(arr[0] == 'load'):
                     # Load calculation history from file
                     try:
                         calc.load_history()
-                        print("History loaded successfully")
+                        print(Fore.GREEN+"History loaded successfully"+Style.RESET_ALL)
                         logging.info('Load Histtory')
                     except Exception as e:
                         logging.error(f"Error loading history: {e}")
-                        print(f"Error loading history: {e}")
+                        print(Fore.RED+ f"Error loading history: {e}"+Style.RESET_ALL)
                     continue
                 if(arr[0] == 'save'):
                     # Save calculation history to file
                     try:
                         calc.save_history()
-                        print("History saved successfully")
+                        print(Fore.GREEN+"History saved successfully"+Style.RESET_ALL)
                     except Exception as e:
                         logging.error(f"Error saving history: {e}")
-                        print(f"Error saving history: {e}")
+                        print(Fore.RED+ f"Error saving history: {e}"+Style.RESET_ALL)
                     continue
                 if(arr[0] == 'history'):
                     history = calc.show_history()
                     if not history:
-                        print("No calculations in history")
+                        print(Fore.RED+ "No calculations in history"+Style.RESET_ALL)
                     else:
-                        print("\nCalculation History:")
+                        print(Fore.BLUE+ "\nCalculation History:"+Style.RESET_ALL)
                         logging.info(f'Show History {len(history)} lines in total')
                         for i, entry in enumerate(history, 1):
-                            print(f"{entry}")
+                            print(Back.BLUE+f"{entry}"+Style.RESET_ALL)
                     continue
 #---------------create operation
                 if len(arr) == 3:
@@ -180,22 +182,23 @@ def main_loop():
                         operation = OperationFactory.create_operation(arr[1])
                         calc.set_operation(operation)
                         result = calc.perform_op(arr[0],arr[2])
-                        print(arr[0],arr[1],arr[2],'=',result,'\n')
-                    except UnknownOperationError as e:
-                        print(e)
+                        print(Back.YELLOW + arr[0],arr[1],arr[2],'=',result,'\n' +Style.RESET_ALL)
+                    except (UnknownOperationError, ValidationError) as e:
+                        print(Fore.RED+f"{e}"+Style.RESET_ALL)
                         logging.error(f'UnknownOperationError {e}')
+                        continue
                     except Exception as e:
-                        print(e)
+                        print(Fore.RED+f"{e}"+Style.RESET_ALL)
                         logging.error(f'Error {e}')
-                        pass
+                        continue
 
                 
 #-----------------
             except ValueError:
-                print("imput error")
+                print(Fore.RED+ "Imput Error"+Style.RESET_ALL)
                 logging.info('User input error')
                 continue
     except Exception as e:
-        print("error",e)
+        print(Fore.RED+ f"error:{e}" +Style.RESET_ALL)
         logging.error(f'Error {e}')
         pass
