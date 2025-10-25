@@ -103,18 +103,68 @@ def main_loop():
         calc = Calculator()
         calc.add_observer(LoggingObserver())
         calc.add_observer(AutoSaveObserver(calc))
-        print("init complete")
+        print("Welcome to my calculator, input help for help")
         while True:
             try:
                 inputstr = input()
                 arr = split_input(inputstr)
-                print (arr)
+                clear_console()
+                print('\n')
+                if(arr[0] == 'help'):
+                    continue
                 if(arr[0] == 'exit'):
+                    # Attempt to save history before exiting
+                    try:
+                        calc.save_history()
+                        print("History saved successfully.")
+                    except Exception as e:
+                        print(f"Warning: Could not save history: {e}")
+                    print("Goodbye!")
                     break
                 if(arr[0] == 'clear'):
-                    clear_console()
+                    # Clear calculation history
+                    calc.clear_history()
+                    print("History cleared")
                     continue
-                print(len(arr))
+                if(arr[0] == 'undo'):
+                    # Undo the last calculation
+                    if calc.undo():
+                        print("Operation undone")
+                    else:
+                        print("Nothing to undo")
+                    continue
+                if(arr[0] == 'redo'):
+                    # Redo the last undone calculation
+                    if calc.redo():
+                        print("Operation redone")
+                    else:
+                        print("Nothing to redo")
+                    continue
+                if(arr[0] == 'load'):
+                    # Load calculation history from file
+                    try:
+                        calc.load_history()
+                        print("History loaded successfully")
+                    except Exception as e:
+                        print(f"Error loading history: {e}")
+                    continue
+                if(arr[0] == 'save'):
+                    # Save calculation history to file
+                    try:
+                        calc.save_history()
+                        print("History saved successfully")
+                    except Exception as e:
+                        print(f"Error saving history: {e}")
+                    continue
+                if(arr[0] == 'history'):
+                    history = calc.show_history()
+                    if not history:
+                        print("No calculations in history")
+                    else:
+                        print("\nCalculation History:")
+                        for i, entry in enumerate(history, 1):
+                            print(f"{entry}")
+                    continue
 #---------------create operation
                 if len(arr) == 3:
                     try:

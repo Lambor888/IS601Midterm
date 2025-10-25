@@ -228,3 +228,125 @@ class Calculator:
             # Log and raise an OperationError if saving fails
             logging.error(f"Failed to save history: {e}")
             raise OperationError(f"Failed to save history: {e}")
+        
+    def load_history(self) -> None:
+        """
+        Load calculation history from a CSV file using pandas.
+
+        Reads the calculation history from a CSV file and reconstructs the
+        Calculation instances, restoring the calculator's history.
+
+        Raises:
+            OperationError: If loading the history fails.
+        """
+        try:
+            if self.config.history_file.exists():
+                # Read the CSV file into a pandas DataFrame
+                df = pd.read_csv(self.config.history_file)
+                if not df.empty:
+                    # Deserialize each row into a Calculation instance
+                    self.history = [
+                        Calculation.from_dict({
+                            'operation': row['operation'],
+                            'operand1': row['operand1'],
+                            'operand2': row['operand2'],
+                            'result': row['result'],
+                            'timestamp': row['timestamp']
+                        })
+                        for _, row in df.iterrows()
+                    ]
+                    logging.info(f"Loaded {len(self.history)} calculations from history")
+                else:
+                    logging.info("Loaded empty history file")
+            else:
+                # If no history file exists, start with an empty history
+                logging.info("No history file found - starting with empty history")
+        except Exception as e:
+            # Log and raise an OperationError if loading fails
+            logging.error(f"Failed to load history: {e}")
+            raise OperationError(f"Failed to load history: {e}")
+
+    def get_history_dataframe(self) -> pd.DataFrame:
+        """
+        Get calculation history as a pandas DataFrame.
+
+        Converts the list of Calculation instances into a pandas DataFrame for
+        advanced data manipulation or analysis.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the calculation history.
+        """
+        history_data = []
+        for calc in self.history:
+            history_data.append({
+                'operation': str(calc.operation),
+                'operand1': str(calc.operand1),
+                'operand2': str(calc.operand2),
+                'result': str(calc.result),
+                'timestamp': calc.timestamp
+            })
+        return pd.DataFrame(history_data)
+
+    def show_history(self) -> List[str]:
+        """
+        Get formatted history of calculations.
+
+        Returns a list of human-readable strings representing each calculation.
+
+        Returns:
+            List[str]: List of formatted calculation history entries.
+        """
+        return [
+            f"{calc.operand1}\t{calc.operation}\t{calc.operand2}\tresult:{calc.result}"
+            for calc in self.history
+        ]
+
+    def clear_history(self) -> None:
+        """
+        Clear calculation history.
+
+        Empties the calculation history and clears the undo and redo stacks.
+        """
+        self.history.clear()
+        self.undo_stack.clear()
+        self.redo_stack.clear()
+        logging.info("History cleared")
+
+    def undo(self) -> bool:
+        """
+        Undo the last operation.
+
+        Restores the calculator's history to the state before the last calculation
+        was performed.
+
+        Returns:
+            bool: True if an operation was undone, False if there was nothing to undo.
+        """
+        if not self.undo_stack:
+            return False
+        # Pop the last state from the undo stack
+        memento = self.undo_stack.pop()
+        # Push the current state onto the redo stack
+        self.redo_stack.append(CalculatorMemento(self.history.copy()))
+        # Restore the history from the memento
+        self.history = memento.history.copy()
+        return True
+
+    def redo(self) -> bool:
+        """
+        Redo the previously undone operation.
+
+        Restores the calculator's history to the state before the last undo.
+
+        Returns:
+            bool: True if an operation was redone, False if there was nothing to redo.
+        """
+        if not self.redo_stack:
+            return False
+        # Pop the last state from the redo stack
+        memento = self.redo_stack.pop()
+        # Push the current state onto the undo stack
+        self.undo_stack.append(CalculatorMemento(self.history.copy()))
+        # Restore the history from the memento
+        self.history = memento.history.copy()
+        return True
